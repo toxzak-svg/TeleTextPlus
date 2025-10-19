@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Utility TMA</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load the Telegram WebApp script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Custom styles to ensure the app matches Telegram's native feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            /* CRITICAL: Ensure the body background always uses the current theme color variable */
+            background-color: var(--tg-theme-bg-color, #ffffff);
+        }
+        .main-button-container {
+            position: sticky;
+            bottom: 0;
+            padding: 1rem;
+        }
+
+        /* --- TAB STYLING UPDATE --- */
+        /* INACTIVE: Set to Hint Color (Gray in Dark Mode) */
+        .tab-button {
+            font-weight: 500; /* Slightly reduced weight for inactive */
+            color: var(--tg-theme-hint-color, #888888); 
+            transition: color 0.3s, border-bottom 0.3s;
+        }
+        
+        /* ACTIVE: Border and weight are constant, text color is controlled by JS for White/LinkColor logic */
+        .tab-button.active {
+            font-weight: 800; /* Extra bold for the active tab */
+            border-bottom: 3px solid var(--tg-theme-link-color, #007aff);
+        }
+
+        /* Default CSS variables - these are necessary for initial load before JS runs */
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #888888;
+            --tg-theme-link-color: #007aff;
+            --tg-theme-button-color: #007aff;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f0f0f0;
+        }
+
+        /* Paywall Modal Styling */
+        .paywall-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+    </style>
+</head>
+<body id="app-body" class="p-4 flex flex-col items-center">
+
+    <div class="w-full max-w-lg">
+        
+        <!-- Main Header -->
+        <h1 id="app-header" class="text-4xl font-extrabold mb-4 text-center" style="color: var(--tg-theme-text-color);">Universal Text Tools</h1>
+
+        <!-- Tab Navigation -->
+        <div id="tab-nav" class="flex justify-between mb-4 border-b border-gray-300">
+            <button id="tab-btn-case" class="tab-button text-sm md:text-base py-2 w-1/5 text-center transition duration-150 ease-in-out" data-tab="case" onclick="showTab('case')">Case</button>
+            <button id="tab-btn-count" class="tab-button text-sm md:text-base py-2 w-1/5 text-center transition duration-150 ease-in-out" data-tab="count" onclick="showTab('count')">Count</button>
+            <button id="tab-btn-base64" class="tab-button text-sm md:text-base py-2 w-1/5 text-center transition duration-150 ease-in-out" data-tab="base64" onclick="showTab('base64')">Base64</button>
+            <button id="tab-btn-ai" class="tab-button text-sm md:text-base py-2 w-1/5 text-center transition duration-150 ease-in-out" data-tab="ai" onclick="showTab('ai')">AI</button>
+            <button id="tab-btn-settings" class="tab-button text-xl py-2 w-1/5 text-center transition duration-150 ease-in-out" data-tab="settings" onclick="showTab('settings')">⚙️</button>
+        </div>
+
+        <!-- NEW WRAPPER: Contains all elements that should hide on the Settings tab -->
+        <div id="input-area-wrapper">
+            <!-- Ad Banner Placeholder -->
+            <div id="ad-banner" class="w-full text-center p-2 rounded-xl mb-4 text-sm font-medium border-2" 
+                style="background-color: var(--tg-theme-secondary-bg-color); border-color: var(--tg-theme-hint-color); color: var(--tg-theme-hint-color);">
+                [ADVERTISEMENT] Upgrade to Premium for an ad-free experience!
+            </div>
+
+            <!-- Quick Menu (Clear and Paste) -->
+            <div class="flex justify-between items-center gap-2 mb-2">
+                <!-- Use Counter Display -->
+                <p id="use-counter-display" class="text-sm font-semibold" style="color: var(--tg-theme-link-color);">
+                    <span id="uses-left">3 Free Uses Remaining</span>
+                </p>
+
+                <div class="flex gap-2">
+                    <button id="btn-clear" class="text-sm py-1 px-3 rounded-lg shadow-sm font-medium" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color);" onclick="clearInput()">Clear Input</button>
+                    <button id="btn-paste" class="text-sm py-1 px-3 rounded-lg shadow-sm font-medium" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color);" onclick="pasteText()">Paste</button>
+                </div>
+            </div>
+
+            <!-- Input Area (Used across all tabs, now with larger text) -->
+            <textarea id="input-text" rows="8" placeholder="Paste or type your text here..." 
+                class="w-full p-3 rounded-lg border focus:outline-none transition duration-150 mb-4 text-base md:text-lg font-medium" 
+                style="background-color: var(--tg-theme-secondary-bg-color); border-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);"
+                oninput="handleInput()"></textarea>
+
+            <!-- Formatting Toggles Container (Only visible on Case tab) -->
+            <div id="formatting-toggles-container" class="mb-4">
+                <div class="flex justify-around p-2 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <!-- Added w-1/4 for consistent sizing -->
+                    <button id="toggle-bold" class="formatting-toggle font-bold py-1 px-4 rounded-xl text-base transition duration-150 w-1/4" 
+                            style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" 
+                            onclick="toggleFormatting('bold')">B</button>
+                    <button id="toggle-italic" class="formatting-toggle italic py-1 px-4 rounded-xl text-base transition duration-150 w-1/4" 
+                            style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" 
+                            onclick="toggleFormatting('italic')">I</button>
+                    <button id="toggle-underline" class="formatting-toggle underline py-1 px-4 rounded-xl text-base transition duration-150 w-1/4" 
+                            style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" 
+                            onclick="toggleFormatting('underline')">U</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content Containers -->
+        <div id="content-container">
+            
+            <!-- Case Conversion Tab (Updated padding from py-3 to py-2) -->
+            <div id="tab-case" class="tab-content grid grid-cols-2 gap-3">
+                <button class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('uppercase')">UPPERCASE</button>
+                <button class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('lowercase')">lowercase</button>
+                
+                <button id="btn-titlecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('titlecase')">Title Case</button>
+                <button id="btn-sentencecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('sentencecase')">Sentence case</button>
+
+                <button id="btn-pascalcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('pascalcase')">PascalCase</button>
+                <button id="btn-camelcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('camelcase')">camelCase</button>
+                
+                <button id="btn-snakecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('snakecase')">snake_case</button>
+                <button id="btn-kebabcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('kebabcase')">kebab-case</button>
+                
+                <button id="btn-alternatingcaps" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('alternatingcaps')">aLtErNaTiNg CaPs</button>
+                <button id="btn-leet" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('leet')">L33T 5P34K</button>
+            </div>
+
+            <!-- Character/Word Count Tab -->
+            <div id="tab-count" class="tab-content hidden p-2">
+                <div id="count-results" class="space-y-3 p-4 rounded-xl shadow-inner text-base md:text-lg font-medium" 
+                     style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);">
+                    <p><strong id="count-char-label">Characters (w/ spaces):</strong> <span id="char-count" class="font-bold">0</span></p>
+                    <p><strong id="count-word-label">Words:</strong> <span id="word-count" class="font-bold">0</span></p>
+                    <p><strong id="count-sentence-label">Sentences (approx):</strong> <span id="sentence-count" class="font-bold">0</span></p>
+                    <p><strong id="count-line-label">Line Breaks:</strong> <span id="line-break-count" class="font-bold">0</span></p>
+                </div>
+            </div>
+
+            <!-- Base64 Tab -->
+            <div id="tab-base64" class="tab-content hidden grid grid-cols-2 gap-3">
+                <button id="btn-encode" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('encode')">Encode Base64</button>
+                <button id="btn-decode" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('decode')">Decode Base64</button>
+            </div>
+
+            <!-- AI Writing Tools Tab (Updated with 8 tools in a 2x4 grid) -->
+            <div id="tab-ai" class="tab-content hidden grid grid-cols-2 gap-3 p-2">
+                
+                <!-- ROW 1: Summarize & Paraphrase (Rewriting Core) -->
+                <button id="btn-summarize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('summarize')">Summarize</button>
+                <button id="btn-paraphrase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('paraphrase')">Paraphrase</button>
+                
+                <!-- ROW 2: Expansion & Grammar/Clarity -->
+                <button id="btn-expand" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('expand')">Expand</button>
+                <button id="btn-fix-grammar" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('fixgrammar')">Fix Grammar</button>
+
+                <!-- ROW 3: Rewriting for Complexity/Tone -->
+                <button id="btn-simplify" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('simplify')">Simplify</button>
+                <button id="btn-formalize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('formalize')">Formalize</button>
+
+                <!-- ROW 4: Rewriting for Tone/Translation -->
+                <button id="btn-casualize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('casualize')">Casualize</button>
+                <button id="btn-translate" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" 
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" 
+                        onclick="handleAITool('translate')">Translate (ES/EN)</button>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden space-y-4 p-2" style="color: var(--tg-theme-text-color);">
+                
+                <!-- Theme Mode Selector (Updated with Auto) -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-theme-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Theme Mode</h2>
+                    <div class="flex justify-between space-x-3">
+                         <button id="btn-auto" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('auto')">💻 Auto</button>
+                        <button id="btn-light" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('light')">☀️ Light</button>
+                        <button id="btn-dark" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('dark')">🌙 Dark</button>
+                    </div>
+                </div>
+
+                <!-- Language Selector -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-language-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Language</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="btn-lang-en" class="language-btn py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('en')">English (EN)</button>
+                        <button id="btn-lang-es" class="language-btn py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('es')">Español (ES)</button>
+                        <button id="btn-lang-ru" class="language-btn py-2 rounded-lg font-medium border-2" 
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('ru')">Русский (RU)</button>
+                    </div>
+                </div>
+
+                <!-- Premium Status Display -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-premium-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Premium Status</h2>
+                    <p id="premium-status" class="font-medium" style="color: var(--tg-theme-hint-color);">Free Trial (3 uses remaining)</p>
+                    <button id="btn-upgrade-premium" class="mt-3 w-full font-bold py-2 rounded-lg transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-link-color); color: var(--tg-theme-button-text-color);" onclick="showPaywall()">Upgrade Now</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Output Display Area (Shared, now with larger text) -->
+        <!-- NOTE: Switched to innerHTML use due to formatting toggles -->
+        <div id="output-container" class="mt-6 p-4 rounded-xl shadow-lg border border-transparent" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); min-height: 8rem;">
+            <p id="result-label" class="text-base font-semibold mb-2" style="color: var(--tg-theme-hint-color);">Result:</p>
+            <pre id="output-display" class="whitespace-pre-wrap break-words text-base md:text-lg font-medium" style="color: var(--tg-theme-text-color);">No output yet. Enter text and select a tool.</pre>
+        </div>
+        
+    </div>
+
+    <!-- Paywall Modal (Hidden by default) -->
+    <div id="paywall-modal" 
