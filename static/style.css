@@ -1,0 +1,58 @@
+/* static/style.css */
+
+/* Custom styles to ensure the app matches Telegram's native feel */
+body {
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    min-height: 100vh;
+    /* CRITICAL: Ensure the body background always uses the current theme color variable */
+    background-color: var(--tg-theme-bg-color, #ffffff);
+}
+
+.main-button-container {
+    position: sticky;
+    bottom: 0;
+    padding: 1rem;
+}
+
+.tab-button.active {
+    font-weight: 800; /* Extra bold for the active tab */
+    border-bottom: 3px solid var(--tg-theme-link-color, #007aff);
+    color: var(--tg-theme-link-color, #007aff);
+}
+
+/* Default CSS variables - these are necessary for initial load before JS runs */
+:root {
+    --tg-theme-bg-color: #ffffff;
+    --tg-theme-text-color: #000000;
+    --tg-theme-hint-color: #888888;
+    --tg-theme-link-color: #007aff;
+    --tg-theme-button-color: #007aff;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-secondary-bg-color: #f0f0f0;
+}
+
+/* Paywall Modal Styling */
+.paywall-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+/* Ensure SVG spinner inherits color correctly */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
