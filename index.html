@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Utility TMA</title>
+    <!-- Load Custom CSS -->
+    <link rel="stylesheet" href="static/style.css">
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load the Telegram WebApp script -->
+    <script src="https://telegram.org/js/telegram-web-app.js?72"></script>
+    <script
+  async
+  src="https://tganalytics.xyz/index.js"
+  onload="initAnalytics()"
+  type="text/javascript"
+></script>
+<script>
+  function initAnalytics() {
+    window.telegramAnalytics.init({
+      token: 'YOUR_ANALYTICS_TOKEN', // Get this from @DataChief_bot on Telegram
+      appName: 'YOUR_ANALYTICS_APP_NAME'  // The analytics identifier you register
+    });
+  }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Utility TMA</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load the Telegram WebApp script -->
+    <script src="https://telegram.org/js/telegram-web-app.js?70"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+        }
+        .main-button-container { position: sticky; bottom: 0; padding: 1rem; }
+        .tab-button.active {
+            font-weight: 800;
+            border-bottom: 3px solid var(--tg-theme-link-color, #007aff);
+            color: var(--tg-theme-link-color, #007aff);
+        }
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #888888;
+            --tg-theme-link-color: #007aff;
+            --tg-theme-button-color: #007aff;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f0f0f0;
+        }
+        .paywall-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000; backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; justify-content: center; align-items: center; padding: 1rem;
+        }
+    </style>
+</head>
+<body id="app-body" class="p-4 flex flex-col items-center">
+    <div class="w-full max-w-lg">
+        <h1 id="app-header" class="text-4xl font-extrabold mb-4 text-center" style="color: var(--tg-theme-text-color);">Universal Text Tools</h1>
+
+        <div id="tab-nav" class="flex justify-between mb-4 border-b border-gray-300">
+            <button id="tab-btn-case" class="tab-button text-sm md:text-base font-bold py-2 w-1/5 text-center" data-tab="case" onclick="showTab('case')">Case</button>
+            <button id="tab-btn-count" class="tab-button text-sm md:text-base font-bold py-2 w-1/5 text-center" data-tab="count" onclick="showTab('count')">Count</button>
+            <button id="tab-btn-base64" class="tab-button text-sm md:text-base font-bold py-2 w-1/5 text-center" data-tab="base64" onclick="showTab('base64')">Base64</button>
+            <button id="tab-btn-ai" class="tab-button text-sm md:text-base font-bold py-2 w-1/5 text-center" data-tab="ai" onclick="showTab('ai')">AI</button>
+            <button id="tab-btn-settings" class="tab-button text-xl py-2 w-1/5 text-center" data-tab="settings" onclick="showTab('settings')">⚙️</button>
+        </div>
+
+        <div id="input-area-wrapper">
+            <div id="ad-banner" class="w-full text-center p-2 rounded-xl mb-4 text-sm font-medium border-2"
+                style="background-color: var(--tg-theme-secondary-bg-color); border-color: var(--tg-theme-hint-color); color: var(--tg-theme-hint-color);">
+                [ADVERTISEMENT] Upgrade to Premium for an ad-free experience!
+            </div>
+
+            <div class="flex justify-between items-center gap-2 mb-2">
+                <p id="use-counter-display" class="text-sm font-semibold" style="color: var(--tg-theme-link-color);">
+                    <span id="uses-left">3 Free Uses Remaining</span>
+                </p>
+                <div class="flex gap-2">
+                    <button id="btn-clear" class="text-sm py-1 px-3 rounded-lg shadow-sm font-medium" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color);" onclick="clearInput()">Clear Input</button>
+                    <button id="btn-paste" class="text-sm py-1 px-3 rounded-lg shadow-sm font-medium" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color);" onclick="pasteText()">Paste</button>
+                </div>
+            </div>
+
+            <textarea id="input-text" rows="8" placeholder="Paste or type your text here..."
+                class="w-full p-3 rounded-lg border focus:outline-none transition duration-150 mb-4 text-base md:text-lg font-medium"
+                style="background-color: var(--tg-theme-secondary-bg-color); border-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);"
+                oninput="handleInput()"></textarea>
+
+            <div id="formatting-toggles-container" class="mb-4">
+                <div class="flex justify-around p-2 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <button id="toggle-bold" class="formatting-toggle font-bold py-1 px-4 rounded-xl w-1/4" style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" onclick="toggleFormatting('bold')">B</button>
+                    <button id="toggle-italic" class="formatting-toggle italic py-1 px-4 rounded-xl w-1/4" style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" onclick="toggleFormatting('italic')">I</button>
+                    <button id="toggle-underline" class="formatting-toggle underline py-1 px-4 rounded-xl w-1/4" style="color: var(--tg-theme-text-color); border: 1px solid var(--tg-theme-hint-color);" onclick="toggleFormatting('underline')">U</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <!-- Case Tab -->
+            <div id="tab-case" class="tab-content grid grid-cols-2 gap-3">
+                <button class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('uppercase')">UPPERCASE</button>
+                <button class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('lowercase')">lowercase</button>
+                <button id="btn-titlecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('titlecase')">Title Case</button>
+                <button id="btn-sentencecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('sentencecase')">Sentence case</button>
+                <button id="btn-pascalcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('pascalcase')">PascalCase</button>
+                <button id="btn-camelcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('camelcase')">camelCase</button>
+                <button id="btn-snakecase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('snakecase')">snake_case</button>
+                <button id="btn-kebabcase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('kebabcase')">kebab-case</button>
+                <button id="btn-alternatingcaps" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('alternatingcaps')">aLtErNaTiNg CaPs</button>
+                <button id="btn-leet" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('leet')">L33T 5P34K</button>
+            </div>
+
+            <!-- Count Tab -->
+            <div id="tab-count" class="tab-content hidden p-2">
+                <div id="count-results" class="space-y-3 p-4 rounded-xl shadow-inner text-base md:text-lg font-medium"
+                     style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);">
+                    <p><strong id="count-char-label">Characters (w/ spaces):</strong> <span id="char-count" class="font-bold">0</span></p>
+                    <p><strong id="count-word-label">Words:</strong> <span id="word-count" class="font-bold">0</span></p>
+                    <p><strong id="count-sentence-label">Sentences (approx):</strong> <span id="sentence-count" class="font-bold">0</span></p>
+                    <p><strong id="count-line-label">Line Breaks:</strong> <span id="line-break-count" class="font-bold">0</span></p>
+                </div>
+            </div>
+
+            <!-- Base64 Tab -->
+            <div id="tab-base64" class="tab-content hidden grid grid-cols-2 gap-3">
+                <button id="btn-encode" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('encode')">Encode Base64</button>
+                <button id="btn-decode" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="handleConversion('decode')">Decode Base64</button>
+            </div>
+
+            <!-- AI Tab -->
+            <div id="tab-ai" class="tab-content hidden grid grid-cols-2 gap-3 p-2">
+                <button id="btn-summarize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('summarize')">Summarize</button>
+                <button id="btn-paraphrase" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('paraphrase')">Paraphrase</button>
+                <button id="btn-expand" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('expand')">Expand</button>
+                <button id="btn-fix-grammar" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('fixgrammar')">Fix Grammar</button>
+                <button id="btn-simplify" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('simplify')">Simplify</button>
+                <button id="btn-formalize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('formalize')">Formalize</button>
+                <button id="btn-casualize" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('casualize')">Casualize</button>
+                <button id="btn-translate" class="font-bold py-2 px-3 rounded-xl transition duration-150 shadow-md text-sm md:text-base"
+                        style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);"
+                        onclick="handleAITool('translate')">Translate (ES/EN)</button>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden space-y-4 p-2" style="color: var(--tg-theme-text-color);">
+                <!-- Theme Selector -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-theme-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Theme Mode</h2>
+                    <div class="flex justify-between space-x-3">
+                         <button id="btn-auto" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('auto')">💻 Auto</button>
+                        <button id="btn-light" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('light')">☀️ Light</button>
+                        <button id="btn-dark" class="theme-btn w-1/3 py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setTheme('dark')">🌙 Dark</button>
+                    </div>
+                </div>
+
+                <!-- Language Selector -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-language-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Language</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="btn-lang-en" class="language-btn py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('en')">English (EN)</button>
+                        <button id="btn-lang-es" class="language-btn py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('es')">Español (ES)</button>
+                        <button id="btn-lang-ru" class="language-btn py-2 rounded-lg font-medium border-2"
+                            style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border-color: transparent;"
+                            onclick="setLanguage('ru')">Русский (RU)</button>
+                    </div>
+                </div>
+
+                <!-- Premium Status Display -->
+                <div class="p-4 rounded-xl" style="background-color: var(--tg-theme-secondary-bg-color);">
+                    <h2 id="setting-premium-label" class="text-lg font-semibold mb-3" style="color: var(--tg-theme-text-color);">Premium Status</h2>
+                    <p id="premium-status" class="font-medium" style="color: var(--tg-theme-hint-color);">Free Trial (3 uses remaining)</p>
+
+                    <!-- Real Payment Button -->
+                    <button id="pay-stars-btn" class="mt-4 w-full font-bold py-2 rounded-lg transition duration-150 shadow-md text-base"
+                        style="background:#007AFF;color:white;">
+                        Unlock Premium (99 Stars/week)
+                    </button>
+
+                    <script>
+                    document.getElementById("pay-stars-btn").onclick = async function() {
+                        try {
+                            // Step 1: Get Telegram WebApp
+                            const tgApp = window.Telegram.WebApp;
+                            if (!tgApp) {
+                                alert("Error: Telegram WebApp not available");
+                                return;
+                            }
+
+                            console.log("=== PAYMENT PROCESS STARTED ===");
+
+                            // Step 2: Get initData
+                            const initData = tgApp.initData;
+                            console.log("1. Raw initData obtained");
+                            console.log("   - Available:", !!initData);
+                            console.log("   - Length:", initData?.length || 0);
+                            console.log("   - First 100 chars:", initData?.substring(0, 100));
+
+                            // Validate initData
+                            if (!initData || initData.trim() === '') {
+                                console.error("❌ InitData is empty or undefined");
+                                tgApp.showAlert("Error: Could not get authentication data. Please restart the app and try again.");
+                                return;
+                            }
+
+                            // Step 3: Prepare payload
+                            const payload = {
+                                initData: initData.trim(),  // Send as-is, don't modify
+                                product: "premium_weekly",
+                                amount: 99
+                            };
+
+                            console.log("2. Payload prepared");
+                            console.log("   - Product:", payload.product);
+                            console.log("   - Amount:", payload.amount);
+                            console.log("   - initData length:", payload.initData.length);
+
+                            // Step 4: Send to backend
+                            const BACKEND_URL = "https://toxzak.pythonanywhere.com/get_invoice";
+                            console.log("3. Sending request to:", BACKEND_URL);
+
+                            let resp;
+                            try {
+                                resp = await fetch(BACKEND_URL, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify(payload)
+                                });
+                            } catch (fetchError) {
+                                console.error("❌ Network error:", fetchError);
+                                tgApp.showAlert("Connection error. Please check your internet and try again.");
+                                return;
+                            }
+
+                            console.log("4. Response received - Status:", resp.status);
+
+                            // Step 5: Check response status
+                            if (!resp.ok) {
+                                const errorText = await resp.text();
+                                console.error("❌ Backend returned error:", resp.status);
+                                console.error("   - Response:", errorText);
+
+                                // Parse error message
+                                let errorMsg = "Payment failed. ";
+                                try {
+                                    const errorJson = JSON.parse(errorText);
+                                    errorMsg += errorJson.error || "Unknown error";
+                                } catch {
+                                    errorMsg += errorText.substring(0, 100);
+                                }
+
+                                tgApp.showAlert(errorMsg);
+                                return;
+                            }
+
+                            // Step 6: Parse response
+                            let data;
+                            try {
+                                data = await resp.json();
+                                console.log("5. Response parsed successfully");
+                            } catch (parseError) {
+                                console.error("❌ Failed to parse response:", parseError);
+                                tgApp.showAlert("Server returned invalid data. Please try again.");
+                                return;
+                            }
+
+                            // Step 7: Validate invoice URL
+                            if (!data || !data.invoice_url) {
+                                console.error("❌ No invoice URL in response:", data);
+                                tgApp.showAlert("Payment service error: No invoice generated");
+                                return;
+                            }
+
+                            console.log("6. Invoice URL received:", data.invoice_url);
+                            console.log("7. Opening invoice...");
+
+                            // Step 8: Open invoice
+                            tgApp.openInvoice(data.invoice_url, async function(status) {
+                                console.log("8. Invoice closed with status:", status);
+
+                                if (status === 'paid') {
+                                    console.log("✓ Payment successful!");
+                                    tgApp.showAlert("Payment successful! Thank you for your purchase.");
+                                    loadMonetizationState();
+                                    updateUseCounter();
+                                    hidePaywall();
+                                } else if (status === 'failed') {
+                                    console.log("✗ Payment failed");
+                                    tgApp.showAlert("Payment failed. Please try again.");
+                                } else if (status === 'cancelled') {
+                                    console.log("✗ Payment cancelled");
+                                    tgApp.showAlert("Payment was cancelled.");
+                                }
+                            });
+
+                        } catch (error) {
+                            console.error("❌ Unexpected error:", error);
+                            console.error("   - Message:", error.message);
+                            console.error("   - Stack:", error.stack);
+                            window.Telegram.WebApp.showAlert("An unexpected error occurred: " + error.message);
+                        }
+                    };;
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div id="output-container" class="mt-6 p-4 rounded-xl shadow-lg border border-transparent" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); min-height: 8rem;">
+            <p id="result-label" class="text-base font-semibold mb-2" style="color: var(--tg-theme-hint-color);">Result:</p>
+            <pre id="output-display" class="whitespace-pre-wrap break-words text-base md:text-lg font-medium" style="color: var(--tg-theme-text-color);">No output yet. Enter text and select a tool.</pre>
+        </div>
+    </div>
+
+    <div id="paywall-modal" class="paywall-modal hidden">
+        <div class="w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4 text-center" style="background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color);">
+            <h2 id="paywall-title" class="text-2xl font-extrabold" style="color: var(--tg-theme-link-color);"></h2>
+            <p id="paywall-message" class="text-base font-medium" style="color: var(--tg-theme-hint-color);"></p>
+
+            <h3 class="text-xl font-bold pt-2">Subscriptions (Unlimited Uses)</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="showAlertNotImplemented()">Monthly (499 Stars)</button>
+                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="showAlertNotImplemented()">Weekly (199 Stars)</button>
+            </div>
+
+            <h3 class="text-xl font-bold pt-2">One-Time Use Packs</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">10 Uses (99 Stars)</button>
+                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">50 Uses (399 Stars)</button>
+                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">100 Uses (599 Stars)</button>
+            </div>
+
+            <button class="mt-4 w-full text-base font-medium py-2 rounded-lg" style="color: var(--tg-theme-hint-color);" onclick="hidePaywall()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE & TRANSLATIONS ---
+        let currentLanguage = localStorage.getItem('appLanguage') || 'en';
+        let currentTheme = localStorage.getItem('appTheme') || 'auto';
+        let tg;
+        let currentTab = 'case';
+        let conversionCount = 0;
+        const AD_INTERVAL = 5;
+        let isBold = false, isItalic = false, isUnderline = false;
+        let usesRemaining, isPremium;
+        const MAX_FREE_USES = 3;
+        const MAX_RETRIES = 3, RETRY_DELAY_MS = 1000;
+
+        const STATIC_LIGHT_THEME = {
+            bg_color: '#ffffff',
+            text_color: '#000000',
+            hint_color: '#888888',
+            link_color: '#007aff',
+            button_color: '#007aff',
+            button_text_color: '#ffffff',
+            secondary_bg_color: '#f0f0f0',
+        };
+
+        const STATIC_DARK_THEME = {
+            bg_color: '#1e1e1e',
+            text_color: '#ffffff',
+            hint_color: '#999999',
+            link_color: '#4a90e2',
+            button_color: '#4a90e2',
+            button_text_color: '#ffffff',
+            secondary_bg_color: '#2d2d2d',
+        };
+
+        const translations = {
+            'en': {
+                'header': 'Universal Text Tools',
+                'tabCase': 'Case',
+                'tabCount': 'Count',
+                'tabBase64': 'Base64',
+                'tabAI': 'AI',
+                'inputPlaceholder': 'Paste or type your text here...',
+                'btnClear': 'Clear Input',
+                'btnPaste': 'Paste',
+                'btnTitlecase': 'Title Case',
+                'btnSentencecase': 'Sentence case',
+                'btnPascalcase': 'PascalCase',
+                'btnCamelcase': 'camelCase',
+                'btnSnakecase': 'snake_case',
+                'btnKebabcase': 'kebab-case',
+                'btnAlternatingcaps': 'aLtErNaTiNg CaPs',
+                'btnLeet': 'L33T 5P34K',
+                'countCharLabel': 'Characters (w/ spaces):',
+                'countWordLabel': 'Words:',
+                'countSentenceLabel': 'Sentences (approx):',
+                'countLineLabel': 'Line Breaks:',
+                'btnEncode': 'Encode Base64',
+                'btnDecode': 'Decode Base64',
+                'btnSummarize': 'Summarize',
+                'btnParaphrase': 'Paraphrase',
+                'btnExpand': 'Expand',
+                'btnFixGrammar': 'Fix Grammar',
+                'btnSimplify': 'Simplify',
+                'btnFormalize': 'Formalize',
+                'btnCasualize': 'Casualize',
+                'btnTranslate': 'Translate (ES/EN)',
+                'aiSourceLabel': 'Sources:',
+                'aiLoading': 'Processing Text...',
+                'resultLabel': 'Result:',
+                'outputDefault': 'No output yet. Enter text and select a tool.',
+                'settingThemeLabel': 'Theme Mode',
+                'settingLanguageLabel': 'Language',
+                'settingPremiumLabel': 'Premium Status',
+                'premiumStatusFree': `Free Trial (${MAX_FREE_USES} uses remaining)`,
+                'premiumStatusUses': 'Uses remaining:',
+                'premiumStatusUnlimited': 'Premium (Unlimited)',
+                'btnUpgradePremium': 'Upgrade Now', // <-- FIXED: Added missing comma
+                'btnAuto': '💻 Auto',
+                'btnLight': '☀️ Light',
+                'btnDark': '🌙 Dark',
+                'tgMainButton': 'COPY RESULT',
+                'alertCopied': 'Result copied to clipboard!',
+                'alertNoInput': 'Please enter text into the box above.',
+                'alertNoConversion': 'Please perform a conversion first.',
+                'alertInputCleared': 'Input cleared.',
+                'alertPasteFailed': 'Pasting failed automatically. Please long-press the input box and select "Paste" manually.',
+                'popupPasteSuccess': 'Text pasted from clipboard!',
+                'errorBase64': 'Error: Invalid input for decoding (must be valid Base64 string).',
+                'adBannerText': '[ADVERTISEMENT] Upgrade to Premium for an ad-free experience!',
+                'paywallTitle': 'Free Trial Ended',
+                'paywallMessage': 'You have run out of free uses. Upgrade to continue using our text tools!',
+                'purchaseSuccess': 'Thank you! You now have unlimited uses!'
+            },
+            'es': {
+                'header': 'Herramientas de Texto Universal',
+                'tabCase': 'Caja',
+                'tabCount': 'Contar',
+                'tabBase64': 'Base64',
+                'tabAI': 'IA',
+                'inputPlaceholder': 'Pega o escribe tu texto aquí...',
+                'btnClear': 'Limpiar Entrada',
+                'btnPaste': 'Pegar',
+                'btnTitlecase': 'Formato Título',
+                'btnSentencecase': 'Formato Oración',
+                'btnPascalcase': 'Formato Pascal',
+                'btnCamelcase': 'Formato Camello',
+                'btnSnakecase': 'snake_case',
+                'btnKebabcase': 'kebab-case',
+                'btnAlternatingcaps': 'fOrMaTo AlTeRnAdO',
+                'btnLeet': 'L33T 5P34K',
+                'countCharLabel': 'Caracteres (c/ espacios):',
+                'countWordLabel': 'Palabras:',
+                'countSentenceLabel': 'Oraciones (aprox):',
+                'countLineLabel': 'Saltos de línea:',
+                'btnEncode': 'Codificar Base64',
+                'btnDecode': 'Decodificar Base64',
+                'btnSummarize': 'Resumir',
+                'btnParaphrase': 'Parafrasear',
+                'btnExpand': 'Expandir',
+                'btnFixGrammar': 'Corregir Gramática',
+                'btnSimplify': 'Simplificar',
+                'btnFormalize': 'Formalizar',
+                'btnCasualize': 'Hacer Casual',
+                'btnTranslate': 'Traducir (ES/EN)',
+                'aiSourceLabel': 'Fuentes:',
+                'aiLoading': 'Procesando Texto...',
+                'resultLabel': 'Resultado:',
+                'outputDefault': 'Aún no hay resultado. Introduce texto y selecciona una herramienta.',
+                'settingThemeLabel': 'Modo de Tema',
+                'settingLanguageLabel': 'Idioma',
+                'settingPremiumLabel': 'Estado Premium',
+                'premiumStatusFree': `Prueba Gratuita (${MAX_FREE_USES} usos restantes)`,
+                'premiumStatusUses': 'Usos restantes:',
+                'premiumStatusUnlimited': 'Premium (Ilimitado)',
+                'btnUpgradePremium': 'Actualizar Ahora', // <-- FIXED: Added missing comma
+                'btnAuto': '💻 Auto',
+                'btnLight': '☀️ Claro',
+                'btnDark': '🌙 Oscuro',
+                'tgMainButton': 'COPIAR RESULTADO',
+                'alertCopied': '¡Resultado copiado al portapapeles!',
+                'alertNoInput': 'Por favor, introduce texto en la caja de arriba.',
+                'alertNoConversion': 'Por favor, realiza una conversión primero.',
+                'alertInputCleared': 'Entrada limpiada.',
+                'alertPasteFailed': 'El pegado automático falló. Mantén pulsada la caja de entrada y selecciona "Pegar" manualmente.',
+                'popupPasteSuccess': 'Texto pegado desde el portapapeles!',
+                'errorBase64': 'Error: Entrada no válida para decodificación (debe ser una cadena Base64 válida).',
+                'adBannerText': '[PUBLICIDAD] ¡Actualiza a Premium para una experiencia sin publicidad!',
+                'paywallTitle': 'Prueba Gratuita Terminada',
+                'paywallMessage': 'Te has quedado sin usos gratuitos. ¡Actualiza para seguir usando nuestras herramientas de texto!',
+                'purchaseSuccess': '¡Gracias! ¡Ahora tienes usos ilimitados!'
+            },
+            'ru': {
+                'header': 'Универсальные Текстовые Инструменты',
+                'tabCase': 'Регистр',
+                'tabCount': 'Счётчик',
+                'tabBase64': 'Base64',
+                'tabAI': 'ИИ',
+                'inputPlaceholder': 'Вставьте или введите ваш текст здесь...',
+                'btnClear': 'Очистить Ввод',
+                'btnPaste': 'Вставить',
+                'btnTitlecase': 'Регистр Заголовка',
+                'btnSentencecase': 'Регистр Предложения',
+                'btnPascalcase': 'Formato Pascal',
+                'btnCamelcase': 'Formato Camello',
+                'btnSnakecase': 'snake_case',
+                'btnKebabcase': 'kebab-case',
+                'btnAlternatingcaps': 'чЕрЕдУюЩиЙсЯ рЕгИсТр',
+                'btnLeet': 'L33T 5P34K',
+                'countCharLabel': 'Символов (с пробелами):',
+                'countWordLabel': 'Слов:',
+                'countSentenceLabel': 'Предложений (прибл.):',
+                'countLineLabel': 'Переносов Строки:',
+                'btnEncode': 'Кодировать Base64',
+                'btnDecode': 'Декодировать Base64',
+                'btnSummarize': 'Суммировать',
+                'btnParaphrase': 'Перефразировать',
+                'btnExpand': 'Расширить',
+                'btnFixGrammar': 'Исправить Грамматику',
+                'btnSimplify': 'Упростить',
+                'btnFormalize': 'Сделать Формальным',
+                'btnCasualize': 'Сделать Неформальным',
+                'btnTranslate': 'Перевести (ES/EN)',
+                'aiSourceLabel': 'Источники:',
+                'aiLoading': 'Обработка Текста...',
+                'resultLabel': 'Результат:',
+                'outputDefault': 'Нет результата. Введите текст и выберите инструмент.',
+                'settingThemeLabel': 'Режим Темы',
+                'settingLanguageLabel': 'Язык',
+                'settingPremiumLabel': 'Статус Премиум',
+                'premiumStatusFree': `Бесплатная Проба (${MAX_FREE_USES} использований осталось)`,
+                'premiumStatusUses': 'Осталось использований:',
+                'premiumStatusUnlimited': 'Премиум (Неограниченно)',
+                'btnUpgradePremium': 'Обновить Сейчас', // <-- FIXED: Added missing comma
+                'btnAuto': '💻 Авто',
+                'btnLight': '☀️ Светлый',
+                'btnDark': '🌙 Тёмный',
+                'tgMainButton': 'КОПИРОВАТЬ РЕЗУЛЬТАТ',
+                'alertCopied': 'Результат скопирован в буфер обмена!',
+                'alertNoInput': 'Пожалуйста, введите текст в поле выше.',
+                'alertNoConversion': 'Сначала выполните преобразование.',
+                'alertInputCleared': 'Ввод очищен.',
+                'alertPasteFailed': 'Автоматическая вставка не удалась. Нажмите и удерживайте поле ввода и выберите «Вставить» вручную.',
+                'popupPasteSuccess': 'Текст вставлен из буфера обмена!',
+                'errorBase64': 'Ошибка: Неверный ввод для декодирования (должна быть действительная строка Base64).',
+                'adBannerText': '[РЕКЛАМА] Обновите до Premium для работы без рекламы!',
+                'paywallTitle': 'Бесплатная Проба Завершена',
+                'paywallMessage': 'У вас закончились бесплатные использования. Обновите, чтобы продолжить пользоваться нашими инструментами текста!',
+                'purchaseSuccess': 'Спасибо! Теперь у вас неограниченное количество использований!'
+            }
+        };
+
+        // --- CORE UTILITY FUNCTIONS ---
+        const cleanText = (text) => text.trim();
+
+        const HEADER_CASE_OPTIONS = [
+            'uppercase',
+            'lowercase',
+            'titlecase',
+            'alternatingcaps',
+            'leet'
+        ];
+
+        const caseConvert = (text, caseType) => {
+            const clean = text.trim();
+            if (!clean) return '';
+
+            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+
+            switch (caseType) {
+                case 'uppercase': return clean.toUpperCase();
+                case 'lowercase': return clean.toLowerCase();
+                case 'titlecase':
+                    return clean.toLowerCase().split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                case 'sentencecase':
+                    const lowerText = clean.toLowerCase();
+                    return lowerText.charAt(0).toUpperCase() + lowerText.slice(1);
+                case 'pascalcase':
+                    return words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+                case 'camelcase':
+                    return words.map((word, index) => {
+                        if (index === 0) return word;
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    }).join('');
+                case 'snakecase': return words.join('_');
+                case 'kebabcase': return words.join('-');
+                case 'alternatingcaps':
+                    let result = '';
+                    let shouldBeUpper = true;
+                    for (let i = 0; i < clean.length; i++) {
+                        let char = clean.charAt(i);
+                        if (char.match(/[a-zа-я]/i)) {
+                            result += shouldBeUpper ? char.toUpperCase() : char.toLowerCase();
+                            shouldBeUpper = !shouldBeUpper;
+                        } else {
+                            result += char;
+                        }
+                    }
+                    return result;
+                case 'leet':
+                    let leetText = clean.toUpperCase();
+                    leetText = leetText.replace(/A/g, '4').replace(/E/g, '3').replace(/I/g, '1').replace(/O/g, '0').replace(/S/g, '5').replace(/T/g, '7').replace(/Z/g, '2');
+                    return leetText;
+                default: return clean;
+            }
+        };
+
+        function applyRandomCaseToHeader() {
+            const headerEl = document.getElementById('app-header');
+            if (!headerEl) return;
+            const currentText = translations[currentLanguage].header;
+            const randomIndex = Math.floor(Math.random() * HEADER_CASE_OPTIONS.length);
+            const randomCaseType = HEADER_CASE_OPTIONS[randomIndex];
+            const transformedText = caseConvert(currentText, randomCaseType);
+            headerEl.textContent = transformedText;
+        }
+
+        const countText = (text) => {
+            const charCount = text.length;
+            const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const sentenceCount = (text.match(/(\.|\?|!)\s/g) || []).length + (text.match(/(\.|\?|!)$/) ? 1 : 0);
+            const lineBreakCount = (text.match(/\n/g) || []).length;
+            return { charCount, wordCount, sentenceCount, lineBreakCount };
+        };
+
+        const base64Transform = (text, operation) => {
+            const clean = text.trim();
+            if (!clean) return '';
+
+            try {
+                if (operation === 'encode') {
+                    const utf8Bytes = new TextEncoder().encode(clean);
+                    return btoa(String.fromCharCode(...utf8Bytes));
+                } else if (operation === 'decode') {
+                    const binaryString = atob(clean);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    return new TextDecoder().decode(bytes);
+                }
+            } catch (e) {
+                return translations[currentLanguage].errorBase64;
+            }
+            return clean;
+        };
+
+        // --- FORMATTING TOGGLE LOGIC ---
+        function toggleFormatting(style) {
+            const btn = document.getElementById(`toggle-${style}`);
+            const activeBg = 'var(--tg-theme-link-color)';
+            const activeColor = 'var(--tg-theme-button-text-color)';
+            const activeBorder = 'var(--tg-theme-link-color)';
+            const inactiveBg = 'transparent';
+            const inactiveColor = 'var(--tg-theme-text-color)';
+            const inactiveBorder = 'var(--tg-theme-hint-color)';
+
+            let state;
+            if (style === 'bold') {
+                isBold = !isBold;
+                state = isBold;
+            } else if (style === 'italic') {
+                isItalic = !isItalic;
+                state = isItalic;
+            } else if (style === 'underline') {
+                isUnderline = !isUnderline;
+                state = isUnderline;
+            } else {
+                return;
+            }
+
+            if (state) {
+                btn.style.backgroundColor = activeBg;
+                btn.style.color = activeColor;
+                btn.style.borderColor = activeBorder;
+                btn.classList.add('shadow-md');
+            } else {
+                btn.style.backgroundColor = inactiveBg;
+                btn.style.color = inactiveColor;
+                btn.style.borderColor = inactiveBorder;
+                btn.classList.remove('shadow-md');
+            }
+        }
+
+        function updateToggleUI() {
+            const styles = ['bold', 'italic', 'underline'];
+            styles.forEach(style => {
+                const btn = document.getElementById(`toggle-${style}`);
+                const inactiveColor = 'var(--tg-theme-text-color)';
+                const inactiveBorder = 'var(--tg-theme-hint-color)';
+                btn.style.backgroundColor = 'transparent';
+                btn.style.color = inactiveColor;
+                btn.style.borderColor = inactiveBorder;
+                btn.classList.remove('shadow-md');
+            });
+        }
+
+        function applyOutputFormatting(text) {
+            if (!text) return '';
+            let formattedText = text;
+
+            if (isBold) {
+                formattedText = `<b>${formattedText}</b>`;
+            }
+            if (isItalic) {
+                formattedText = `<i>${formattedText}</i>`;
+            }
+            if (isUnderline) {
+                formattedText = `<u>${formattedText}</u>`;
+            }
+            return formattedText;
+        }
+
+        // --- MONETIZATION LOGIC ---
+        function loadMonetizationState() {
+            isPremium = localStorage.getItem('isPremium') === 'true';
+            const storedUses = localStorage.getItem('usesRemaining');
+
+            if (isPremium) {
+                usesRemaining = 'Unlimited';
+            } else if (storedUses === null) {
+                usesRemaining = MAX_FREE_USES;
+                localStorage.setItem('usesRemaining', MAX_FREE_USES);
+            } else {
+                usesRemaining = parseInt(storedUses, 10);
+            }
+        }
+
+        function updateUseCounter() {
+            const strings = translations[currentLanguage];
+            const counterEl = document.getElementById('uses-left');
+            const statusEl = document.getElementById('premium-status');
+            const adBanner = document.getElementById('ad-banner');
+
+            if (isPremium) {
+                counterEl.textContent = strings.premiumStatusUnlimited;
+                statusEl.textContent = strings.premiumStatusUnlimited;
+                adBanner.classList.add('hidden');
+            } else {
+                counterEl.textContent = `${usesRemaining} Free Uses Remaining`;
+                statusEl.textContent = `${strings.premiumStatusUses} ${usesRemaining}`;
+                adBanner.classList.remove('hidden');
+            }
+        }
+
+        function checkAndDecrementUse() {
+            const strings = translations[currentLanguage];
+            if (isPremium) return true;
+
+            if (usesRemaining <= 0) {
+                showPaywall();
+                if (currentTab !== 'count') {
+                     document.getElementById('output-display').innerHTML = strings.paywallTitle;
+                }
+                if (tg) tg.showPopup({ message: strings.paywallMessage, buttons: [{ text: strings.btnUpgradePremium, id: 'upgrade' }] });
+                return false;
+            }
+
+            usesRemaining = Math.max(0, usesRemaining - 1);
+            localStorage.setItem('usesRemaining', usesRemaining);
+            updateUseCounter();
+
+            if (usesRemaining === 0) {
+                setTimeout(showPaywall, 100);
+            }
+
+            return true;
+        }
+
+        function showPaywall() {
+            const strings = translations[currentLanguage];
+            document.getElementById('paywall-title').textContent = strings.paywallTitle;
+            document.getElementById('paywall-message').textContent = strings.paywallMessage;
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            if (tg) tg.MainButton.hide();
+        }
+
+        function hidePaywall() {
+            document.getElementById('paywall-modal').classList.add('hidden');
+            if (currentTab !== 'settings' && currentTab !== 'count' && tg) {
+                 tg.MainButton.show();
+            }
+        }
+
+        function simulatePurchase(type, value) {
+            const strings = translations[currentLanguage];
+
+            if (type === 'subscription') {
+                isPremium = true;
+                usesRemaining = 'Unlimited';
+                localStorage.setItem('isPremium', 'true');
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert(strings.purchaseSuccess);
+                }
+
+            } else if (type === 'pack') {
+                if (isPremium) {
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.showAlert("You're already Premium! Enjoy unlimited uses.");
+                    }
+                    return;
+                }
+                if (typeof usesRemaining !== 'number') usesRemaining = 0;
+
+                usesRemaining += value;
+                localStorage.setItem('usesRemaining', usesRemaining);
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showPopup({ message: `${value} uses added! You now have ${usesRemaining} total uses.`, buttons: [{ text: 'OK', id: 'ok' }] });
+                }
+            }
+
+            hidePaywall();
+            updateUseCounter();
+        }
+
+        function showAlertNotImplemented() {
+             if (window.Telegram && window.Telegram.WebApp) {
+                 window.Telegram.WebApp.showAlert("This payment option is not yet implemented. Please use the main 'Unlock Premium' button.");
+             }
+        }
+
+        // --- THEME & LANGUAGE LOGIC ---
+        function setTheme(mode) {
+            currentTheme = mode;
+            localStorage.setItem('appTheme', currentTheme);
+
+            let colorSet = null;
+            const root = document.documentElement;
+
+            if (mode === 'auto') {
+                if (tg && tg.colorScheme) {
+                    colorSet = tg.themeParams;
+                } else {
+                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    colorSet = prefersDark ? STATIC_DARK_THEME : STATIC_LIGHT_THEME;
+                }
+            } else {
+                colorSet = mode === 'dark' ? STATIC_DARK_THEME : STATIC_LIGHT_THEME;
+            }
+
+            if (colorSet) {
+                for (const [key, value] of Object.entries(colorSet)) {
+                    const cssVarKey = key.startsWith('--') ? key : `--tg-theme-${key.replace(/_/g, '-')}`;
+                    root.style.setProperty(cssVarKey, value);
+                }
+            }
+
+            updateThemeUI(mode);
+        }
+
+        function updateThemeUI(mode) {
+            const btns = document.querySelectorAll('.theme-btn');
+            btns.forEach(btn => {
+                btn.style.borderColor = 'transparent';
+                btn.style.color = 'var(--tg-theme-button-text-color)';
+                btn.style.backgroundColor = 'var(--tg-theme-button-color)';
+            });
+
+            let activeBtn = null;
+            if (mode === 'light') {
+                activeBtn = document.getElementById('btn-light');
+            } else if (mode === 'dark') {
+                activeBtn = document.getElementById('btn-dark');
+            } else if (mode === 'auto') {
+                activeBtn = document.getElementById('btn-auto');
+            }
+
+            if (activeBtn) {
+                activeBtn.style.borderColor = 'var(--tg-theme-link-color)';
+                activeBtn.style.borderWidth = '2px';
+                activeBtn.style.backgroundColor = 'var(--tg-theme-secondary-bg-color)';
+                activeBtn.style.color = 'var(--tg-theme-link-color)';
+            }
+        }
+
+        function updateLanguageUI(lang) {
+            const btns = document.querySelectorAll('.language-btn');
+            btns.forEach(btn => {
+                btn.style.borderColor = 'transparent';
+                btn.style.color = 'var(--tg-theme-button-text-color)';
+                btn.style.backgroundColor = 'var(--tg-theme-button-color)';
+            });
+
+            let activeBtn = null;
+            if (lang === 'en') {
+                activeBtn = document.getElementById('btn-lang-en');
+            } else if (lang === 'es') {
+                activeBtn = document.getElementById('btn-lang-es');
+            } else if (lang === 'ru') {
+                activeBtn = document.getElementById('btn-lang-ru');
+            }
+
+            if (activeBtn) {
+                activeBtn.style.borderColor = 'var(--tg-theme-link-color)';
+                activeBtn.style.borderWidth = '2px';
+                activeBtn.style.backgroundColor = 'var(--tg-theme-secondary-bg-color)';
+                activeBtn.style.color = 'var(--tg-theme-link-color)';
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('appLanguage', lang);
+            const strings = translations[lang];
+
+            document.getElementById('app-header').textContent = strings.header;
+            document.getElementById('tab-btn-case').textContent = strings.tabCase;
+            document.getElementById('tab-btn-count').textContent = strings.tabCount;
+            document.getElementById('tab-btn-base64').textContent = strings.tabBase64;
+            document.getElementById('tab-btn-ai').textContent = strings.tabAI;
+            document.getElementById('btn-clear').textContent = strings.btnClear;
+            document.getElementById('btn-paste').textContent = strings.btnPaste;
+            document.getElementById('result-label').textContent = strings.resultLabel;
+            document.getElementById('ad-banner').textContent = strings.adBannerText;
+
+            applyRandomCaseToHeader();
+
+            document.getElementById('input-text').placeholder = strings.inputPlaceholder;
+
+            document.getElementById('btn-titlecase').textContent = strings.btnTitlecase;
+            document.getElementById('btn-sentencecase').textContent = strings.btnSentencecase;
+            document.getElementById('btn-pascalcase').textContent = strings.btnPascalcase;
+            document.getElementById('btn-camelcase').textContent = strings.btnCamelcase;
+            document.getElementById('btn-snakecase').textContent = strings.btnSnakecase;
+            document.getElementById('btn-kebabcase').textContent = strings.btnKebabcase;
+            document.getElementById('btn-alternatingcaps').textContent = strings.btnAlternatingcaps;
+            document.getElementById('btn-leet').textContent = strings.btnLeet;
+
+            document.getElementById('count-char-label').textContent = strings.countCharLabel;
+            document.getElementById('count-word-label').textContent = strings.countWordLabel;
+            document.getElementById('count-sentence-label').textContent = strings.countSentenceLabel;
+            document.getElementById('count-line-label').textContent = strings.countLineLabel;
+
+            document.getElementById('btn-encode').textContent = strings.btnEncode;
+            document.getElementById('btn-decode').textContent = strings.btnDecode;
+
+            if (document.getElementById('btn-summarize')) {
+                document.getElementById('btn-summarize').textContent = strings.btnSummarize;
+                document.getElementById('btn-paraphrase').textContent = strings.btnParaphrase;
+                document.getElementById('btn-expand').textContent = strings.btnExpand;
+                document.getElementById('btn-fix-grammar').textContent = strings.btnFixGrammar;
+                document.getElementById('btn-simplify').textContent = strings.btnSimplify;
+                document.getElementById('btn-formalize').textContent = strings.btnFormalize;
+                document.getElementById('btn-casualize').textContent = strings.btnCasualize;
+                document.getElementById('btn-translate').textContent = strings.btnTranslate;
+            }
+
+            document.getElementById('setting-theme-label').textContent = strings.settingThemeLabel;
+            document.getElementById('setting-language-label').textContent = strings.settingLanguageLabel;
+            document.getElementById('setting-premium-label').textContent = strings.settingPremiumLabel;
+
+            document.getElementById('btn-auto').textContent = strings.btnAuto;
+            document.getElementById('btn-light').textContent = strings.btnLight;
+            document.getElementById('btn-dark').textContent = strings.btnDark;
+            document.getElementById('btn-lang-en').textContent = 'English (EN)';
+            document.getElementById('btn-lang-es').textContent = 'Español (ES)';
+            document.getElementById('btn-lang-ru').textContent = 'Русский (RU)';
+
+            const outputDisplay = document.getElementById('output-display');
+             if (outputDisplay.textContent.startsWith('No output yet') || outputDisplay.textContent.startsWith('Aún no hay resultado') || outputDisplay.textContent.startsWith('Нет результата')) {
+                outputDisplay.textContent = strings.outputDefault;
+            }
+
+            if (tg && tg.MainButton) {
+                tg.MainButton.setText(strings.tgMainButton);
+            }
+
+            updateLanguageUI(lang);
+            updateUseCounter();
+        }
+
+        // --- TELEGRAM WEB APP & UI LOGIC ---
+        function showAdIfReady() {
+            if (isPremium) return;
+
+            if (tg && tg.showInterstitialAd) {
+                conversionCount++;
+                if (conversionCount >= AD_INTERVAL) {
+                    tg.showInterstitialAd(() => {
+                        console.log('Interstitial Ad closed.');
+                    });
+                    conversionCount = 0;
+                }
+            }
+        }
+
+        function initializeTelegramApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+            }
+
+            loadMonetizationState();
+            setTheme(currentTheme);
+            setLanguage(currentLanguage);
+            updateToggleUI();
+
+            if (tg) {
+                tg.MainButton.setText(translations[currentLanguage].tgMainButton);
+                tg.MainButton.show();
+
+                tg.onEvent('mainButtonClicked', () => {
+                    const outputText = document.getElementById('output-display').textContent;
+                    const strings = translations[currentLanguage];
+
+                    if (outputText === strings.outputDefault || outputText.startsWith('Error:') || outputText.startsWith(strings.paywallTitle)) {
+                        tg.showAlert(strings.alertNoConversion);
+                        return;
+                    }
+
+                    const el = document.createElement('textarea');
+                    el.value = outputText;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+
+                    tg.showPopup({
+                        message: strings.alertCopied,
+                        buttons: [{ text: 'OK', id: 'ok' }]
+                    });
+                });
+            }
+
+            showTab(currentTab);
+        }
+
+        function showTab(tabId) {
+            currentTab = tabId;
+            const contents = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            const outputContainer = document.getElementById('output-container');
+            const inputWrapper = document.getElementById('input-area-wrapper');
+            const inputText = document.getElementById('input-text');
+            const formattingContainer = document.getElementById('formatting-toggles-container');
+
+            contents.forEach(el => el.classList.add('hidden'));
+            buttons.forEach(el => el.classList.remove('active'));
+
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            const strings = translations[currentLanguage];
+
+            if (tabId === 'case') {
+                formattingContainer.classList.remove('hidden');
+            } else {
+                formattingContainer.classList.add('hidden');
+                isBold = isItalic = isUnderline = false;
+                updateToggleUI();
+            }
+
+            if (tabId === 'ai') {
+                inputText.placeholder = "Paste text here to summarize, paraphrase, or expand...";
+            } else {
+                inputText.placeholder = strings.inputPlaceholder;
+            }
+
+            if (tabId === 'settings' || tabId === 'count') {
+                if (tg && tg.MainButton.isVisible) tg.MainButton.hide();
+            } else {
+                if (tg && !tg.MainButton.isVisible) tg.MainButton.show();
+            }
+
+            if (tabId === 'settings') {
+                inputWrapper.classList.add('hidden');
+                outputContainer.classList.add('hidden');
+                return;
+            } else {
+                inputWrapper.classList.remove('hidden');
+            }
+
+            if (tabId === 'count') {
+                handleInput();
+                outputContainer.classList.add('hidden');
+            } else {
+                outputContainer.classList.remove('hidden');
+                const outputDisplay = document.getElementById('output-display');
+                 if (outputDisplay.textContent.startsWith('No output yet') || outputDisplay.textContent.startsWith('Aún no hay resultado') || outputDisplay.textContent.startsWith('Нет результата') || outputDisplay.textContent.startsWith(strings.paywallTitle)) {
+                    outputDisplay.innerHTML = strings.outputDefault;
+                }
+            }
+        }
+
+        // --- GEMINI API FUNCTIONS ---
+        function getAIPrompt(action, text, lang) {
+            const baseInstruction = `You are a professional, helpful, and concise text assistant. Your task is to perform the requested writing task on the user-provided text. Do not add any extra commentary, introductory phrases, or explanations. Simply provide the processed text. The output language must be in the same language as the input, which is approximately ${lang}.`;
+            let userQuery = '';
+
+            switch (action) {
+                case 'summarize':
+                    userQuery = `Summarize the following text concisely in 2-3 sentences: "${text}"`;
+                    break;
+                case 'paraphrase':
+                    userQuery = `Paraphrase the following text, changing the structure and wording while keeping the original meaning: "${text}"`;
+                    break;
+                case 'expand':
+                    userQuery = `Expand the following text to make it twice as long and add more detail. Ensure the new text is coherent and flows naturally: "${text}"`;
+                    break;
+                case 'fixgrammar':
+                    userQuery = `Correct all grammar, spelling, and punctuation errors in the following text. Preserve the original tone and meaning as much as possible: "${text}"`;
+                    break;
+                case 'simplify':
+                    userQuery = `Rewrite the following text to be simpler, clearer, and accessible for a high-school level reader: "${text}"`;
+                    break;
+                case 'formalize':
+                    userQuery = `Rewrite the following text to have a highly professional and formal tone, suitable for a business email or academic paper: "${text}"`;
+                    break;
+                case 'casualize':
+                    userQuery = `Rewrite the following text to have a relaxed, friendly, and casual tone, suitable for a text message or friendly chat: "${text}"`;
+                    break;
+                case 'translate':
+                    userQuery = `Translate the following text. If the input is in Spanish, translate it to English. Otherwise, translate it to Spanish: "${text}"`;
+                    break;
+                default:
+                    userQuery = `Process the following text: "${text}"`;
+            }
+            return { systemPrompt: baseInstruction, userQuery };
+        }
+
+        async function fetchGemini(userQuery, systemPrompt) {
+             // IMPORTANT: You need to provide your actual Gemini API key here.
+             // For security, it's best to get this from an environment variable or your backend.
+             // As a quick test, you can hardcode it, but don't commit it to public repos.
+             const API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // <--- REPLACE THIS
+
+             if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+                 console.error("Gemini API key is missing!");
+                 // Simulate an error response
+                 throw new Error("AI service is not configured. Please provide a valid Gemini API key.");
+             }
+
+            // Use a model that supports grounding, like gemini-1.5-pro or gemini-1.5-flash
+            const MODEL_NAME = "gemini-1.5-flash";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            let lastError = null;
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`API returned status ${response.status}: ${errorBody.substring(0, 100)}...`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const text = candidate.content.parts[0].text;
+                        let sources = [];
+                        const groundingMetadata = candidate.groundingMetadata;
+
+                        if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                            sources = groundingMetadata.groundingAttributions
+                                .map(attribution => ({
+                                    uri: attribution.web?.uri,
+                                    title: attribution.web?.title,
+                                }))
+                                .filter(source => source.uri && source.title);
+                        }
+                        return { text, sources };
+                    } else {
+                        throw new Error('Invalid response structure from Gemini API.');
+                    }
+
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`Attempt ${i + 1} failed. Retrying in ${RETRY_DELAY_MS}ms...`);
+                    if (i < MAX_RETRIES - 1) {
+                        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+                    }
+                }
+            }
+            throw lastError || new Error("All retry attempts failed.");
+        }
+
+        function displayAIResult(text, sources) {
+            const outputDisplay = document.getElementById('output-display');
+            const strings = translations[currentLanguage];
+
+            const formattedText = applyOutputFormatting(text);
+
+            let html = `<div class="ai-response space-y-3">
+                            <p class="whitespace-pre-wrap break-words text-lg font-normal">${formattedText}</p>
+                        </div>`;
+
+            if (sources.length > 0) {
+                html += `<div class="mt-4 border-t pt-3 rounded-t-xl" style="border-color: var(--tg-theme-hint-color);">
+                            <p class="text-xs font-semibold mb-2" style="color: var(--tg-theme-link-color);">${strings.aiSourceLabel}</p>
+                            <ul class="space-y-1">`;
+
+                sources.slice(0, 3).forEach((source, index) => {
+                    html += `<li class="text-sm">
+                                <a href="${source.uri}" target="_blank" style="color: var(--tg-theme-link-color); text-decoration: underline;">
+                                    <span style="color: var(--tg-theme-hint-color);">[${index + 1}]</span> ${source.title || source.uri}
+                                </a>
+                            </li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            outputDisplay.innerHTML = html;
+        }
+
+        // --- MAIN APPLICATION DISPATCHERS ---
+        async function handleAITool(action) {
+            const inputText = document.getElementById('input-text').value;
+            const strings = translations[currentLanguage];
+            const outputDisplay = document.getElementById('output-display');
+            const actionBtn = document.getElementById(`btn-${action.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+
+            if (!inputText.trim()) {
+                if (tg) tg.showPopup({ message: strings.alertNoInput });
+                return;
+            }
+
+            if (!checkAndDecrementUse()) return;
+
+            actionBtn.disabled = true;
+            const originalText = actionBtn.textContent;
+            actionBtn.textContent = strings.aiLoading;
+            outputDisplay.innerHTML = `<div class="flex items-center space-x-2 text-xl font-medium" style="color: var(--tg-theme-link-color);">
+                                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>${strings.aiLoading}</span>
+                                        </div>`;
+
+            const { systemPrompt, userQuery } = getAIPrompt(action, inputText, currentLanguage);
+
+            try {
+                const { text, sources } = await fetchGemini(userQuery, systemPrompt);
+                displayAIResult(text, sources);
+                showAdIfReady();
+            } catch (error) {
+                console.error("AI Generation Error:", error);
+                // Improved error message for the user
+                let userMessage = "Error: Failed to process text. ";
+                if (error.message.includes("API key")) {
+                    userMessage += "The AI service is not configured correctly.";
+                } else if (error.message.includes("400") || error.message.includes("404")) {
+                     userMessage += "The request was invalid or the model was not found.";
+                } else {
+                     userMessage += "The AI service may be temporarily unavailable or the input was too complex.";
+                }
+                outputDisplay.innerHTML = userMessage;
+            } finally {
+                actionBtn.disabled = false;
+                actionBtn.textContent = originalText;
+            }
+        }
+
+        function handleConversion(type) {
+            const inputText = document.getElementById('input-text').value;
+            const strings = translations[currentLanguage];
+            let result = '';
+
+            if (!inputText) {
+                document.getElementById('output-display').innerHTML = strings.outputDefault;
+                if (tg) tg.showPopup({ message: strings.alertNoInput });
+                return;
+            }
+
+            if (!checkAndDecrementUse()) return;
+
+            let conversionSuccessful = false;
+            if (['uppercase', 'lowercase', 'titlecase', 'sentencecase', 'pascalcase', 'camelcase', 'snakecase', 'kebabcase', 'alternatingcaps', 'leet'].includes(type)) {
+                result = caseConvert(inputText, type);
+                conversionSuccessful = true;
+            }
+            else if (['encode', 'decode'].includes(type)) {
+                result = base64Transform(inputText, type);
+                conversionSuccessful = (result !== strings.errorBase64);
+            }
+
+            if (conversionSuccessful) {
+                showAdIfReady();
+            }
+
+            document.getElementById('output-display').innerHTML = applyOutputFormatting(result);
+        }
+
+        function handleInput() {
+            const inputText = document.getElementById('input-text').value;
+            if (currentTab === 'count') {
+                const counts = countText(inputText);
+                document.getElementById('char-count').textContent = counts.charCount;
+                document.getElementById('word-count').textContent = counts.wordCount;
+                document.getElementById('sentence-count').textContent = counts.sentenceCount;
+                document.getElementById('line-break-count').textContent = counts.lineBreakCount;
+            }
+        }
+
+        function clearInput() {
+            const strings = translations[currentLanguage];
+            document.getElementById('input-text').value = '';
+            document.getElementById('output-display').innerHTML = strings.outputDefault;
+            handleInput();
+            if(tg) tg.showAlert(strings.alertInputCleared);
+        }
+
+        async function pasteText() {
+            const inputEl = document.getElementById('input-text');
+            const strings = translations[currentLanguage];
+
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    inputEl.value = text;
+                    handleInput();
+                    if(tg) tg.showPopup({ message: strings.popupPasteSuccess, buttons: [{ text: 'OK', id: 'ok' }] });
+                } else {
+                     throw new Error("Clipboard access restricted or empty.");
+                }
+            } catch (err) {
+                if(tg) tg.showAlert(strings.alertPasteFailed);
+                inputEl.focus();
+            }
+        }
+
+        window.onload = initializeTelegramApp;
+    </script>
+</body>
+</html>
