@@ -353,15 +353,15 @@
 
             <h3 class="text-xl font-bold pt-2">Subscriptions (Unlimited Uses)</h3>
             <div class="grid grid-cols-2 gap-3">
-                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="showAlertNotImplemented()">Monthly (499 Stars)</button>
-                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="showAlertNotImplemented()">Weekly (199 Stars)</button>
+                 <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="payPremium('premium_monthly', 499)">Monthly (499 Stars)</button>
+                 <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color);" onclick="payPremium('premium_weekly', 199)">Weekly (199 Stars)</button>
             </div>
 
             <h3 class="text-xl font-bold pt-2">One-Time Use Packs</h3>
             <div class="grid grid-cols-3 gap-3">
-                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">10 Uses (99 Stars)</button>
-                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">50 Uses (399 Stars)</button>
-                <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="showAlertNotImplemented()">100 Uses (599 Stars)</button>
+                 <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="payPremium('pack_10', 99)">10 Uses (99 Stars)</button>
+                 <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="payPremium('pack_50', 399)">50 Uses (399 Stars)</button>
+                 <button class="font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md text-sm md:text-base" style="background-color: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); border: 1px solid var(--tg-theme-link-color);" onclick="payPremium('pack_100', 599)">100 Uses (599 Stars)</button>
             </div>
 
             <button class="mt-4 w-full text-base font-medium py-2 rounded-lg" style="color: var(--tg-theme-hint-color);" onclick="hidePaywall()">Close</button>
@@ -843,10 +843,53 @@
             updateUseCounter();
         }
 
-        function showAlertNotImplemented() {
-             if (window.Telegram && window.Telegram.WebApp) {
-                 window.Telegram.WebApp.showAlert("This payment option is not yet implemented. Please use the main 'Unlock Premium' button.");
-             }
+        function payPremium(product, amount) {
+            const tgApp = window.Telegram && window.Telegram.WebApp;
+            if (!tgApp) {
+                alert("Error: Telegram WebApp not available");
+                return;
+            }
+            const initData = tgApp.initData;
+            if (!initData || initData.trim() === '') {
+                tgApp.showAlert("Error: Could not get authentication data. Please restart the app and try again.");
+                return;
+            }
+            const payload = {
+                initData: initData.trim(),
+                product: product,
+                amount: amount
+            };
+            const BACKEND_URL = "https://toxzak.pythonanywhere.com/get_invoice";
+            fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (!data || !data.invoice_url) {
+                    tgApp.showAlert("Payment service error: No invoice generated");
+                    return;
+                }
+                tgApp.openInvoice(data.invoice_url, function(status) {
+                    if (status === 'paid') {
+                        tgApp.showAlert("Payment successful! Thank you for your purchase.");
+                        loadMonetizationState();
+                        updateUseCounter();
+                        hidePaywall();
+                    } else if (status === 'failed') {
+                        tgApp.showAlert("Payment failed. Please try again.");
+                    } else if (status === 'cancelled') {
+                        tgApp.showAlert("Payment was cancelled.");
+                    }
+                });
+            })
+            .catch(error => {
+                tgApp.showAlert("Connection or server error. Please try again later.");
+            });
         }
 
         // --- THEME & LANGUAGE LOGIC ---
